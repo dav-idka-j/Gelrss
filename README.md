@@ -62,7 +62,7 @@ npm start
 GELBOORU_API_KEY=your_gelbooru_api_key
 GELBOORU_USER_ID=your_gelbooru_id
 
-# Cache update interval in minutes
+# Cache update interval in minutes (default: 10)
 UPDATE_INTERVAL_MINUTES=10
 
 # Server base URL (IP/domain only, without port)
@@ -71,6 +71,16 @@ BASE_URL=localhost
 # Server port
 PORT=24454
 
+# Cache Persistence (OPTIONAL)
+# Connection string for database persistance. (default: in-memory)
+# For SQLite, use a file path like: sqlite://./data/gelrss.db
+# DATABASE_URL=sqlite://./data/gelrss.db
+
+# Finetuning Fetch and Cache Limits (OPTIONAL)
+# Number of posts to fetch from Gelbooru API (default: 20)
+GELBOORU_FETCH_LIMIT=20
+# Maximum number of posts to keep in the cache for each tag (default: 200)
+ARTIST_CACHE_SIZE=200
 ```
 ## 🌐 API Endpoints
 
@@ -88,15 +98,33 @@ PORT=24454
 - `GET /refresh-all` - Update all feeds
 - **Example**: `http://localhost:24454/refresh/khyle`
 
+### Cache Persistence
+
+Gelrss supports two caching modes:
+
+1.  **In-Memory (Default)**:
+    -   If `DATABASE_URL` is commented out or missing from `.env`, the application will store the cache in memory.
+    -   This is the simplest mode and requires no extra configuration.
+    -   **Caveat**: All cached data will be lost when the application restarts.
+
+2.  **SQLite (Persistent)**:
+    -   To enable, set a path for `DATABASE_URL` in your `.env`.
+    -   Example: `DATABASE_URL=sqlite://./data/gelrss.db`
+    -   The application will automatically create and manage the SQLite database file.
+    -   **Benefit**: The cache is saved to disk, so feed data persists across application restarts, reducing initial load times.
+
 ## 📁 Project Structure
 
 ```
 gelbooru-rss-generator/
-├── configs/                 # Per-artist configurations
-│   ├── khyle.json          # Khyle configuration
-│   ├── optionaltypo.json   # OptionalTypo configuration
-│   └── ...                 # Other artists
-├── .env                    # Global settings
+├── cache/                 # Cache service implementations
+│   ├── inMemoryCache.js
+│   └── databaseCache.js
+├── configs/               # Per-artist configurations
+│   ├── khyle.json         # Khyle configuration
+│   ├── optionaltypo.json  # OptionalTypo configuration
+│   └── ...                # Other artists
+├── .env                   # Global settings
 ├── .env.example           # Configuration example
 ├── package.json           # Project dependencies
 ├── server.js              # Main application

@@ -2,3 +2,5 @@
 node_modules
 configs/*
 !configs/example.json
+*.db
+*.db-journal
