@@ -4,3 +4,4 @@ configs/*
 !configs/example.json
 *.db
 *.db-journal
+.idea

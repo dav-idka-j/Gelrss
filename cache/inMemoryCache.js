@@ -15,7 +15,9 @@ async function updateArtistCache({ artistId, posts, postCount }) {
   const existingFeed = feedCache.get(artistId) || {};
 
   const allPosts = [...(existingFeed.posts || []), ...posts];
-  const uniquePosts = Array.from(new Map(allPosts.map(post => [post.id, post])).values()); // Deduplicate by post.id
+  const uniquePosts = Array.from(
+    new Map(allPosts.map((post) => [post.id, post])).values(),
+  ); // Deduplicate by post.id
   const sortedAndLimitedPosts = uniquePosts
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     .slice(0, ARTIST_CACHE_SIZE);
@@ -46,7 +48,7 @@ async function getAllFeeds() {
 
 async function pruneStaleFeeds(activeArtistIds) {
   const staleKeys = Array.from(feedCache.keys()).filter(
-    (key) => !activeArtistIds.includes(key)
+    (key) => !activeArtistIds.includes(key),
   );
   staleKeys.forEach((key) => feedCache.delete(key));
   return Promise.resolve();

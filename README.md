@@ -82,6 +82,16 @@ GELBOORU_FETCH_LIMIT=20
 # Maximum number of posts to keep in the cache for each tag (default: 200)
 ARTIST_CACHE_SIZE=200
 ```
+### Artist Configuration (configs/*.json)
+
+Each artist has their own JSON file in the `configs/` directory.
+
+- `ARTIST_NAME` (Required): Display name of the artist.
+- `GELBOORU_TAG` (Required): The tag used to search on Gelbooru.
+- `ICON_URL` (Optional): URL for the feed icon.
+- `FEED_TITLE` (Optional): Custom title for the RSS feed.
+- `MIN_SCORE` (Optional): Minimum score for posts to be included in the feed.
+
 ## 🌐 API Endpoints
 
 ### RSS Feeds
@@ -147,7 +157,8 @@ touch configs/sakimichan.json
   "ARTIST_NAME": "Sakimichan",
   "GELBOORU_TAG": "sakimichan",
   "ICON_URL": "https://example.com/sakimichan-icon.png",
-  "FEED_TITLE": "Posts of Sakimichan from Gelbooru"
+  "FEED_TITLE": "Popular posts of Sakimichan from Gelbooru",
+  "MIN_SCORE": 50
 }
 ```
 
