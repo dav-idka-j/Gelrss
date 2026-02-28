@@ -2,5 +2,6 @@
   "ARTIST_NAME": "Artist_Name_Example",
   "GELBOORU_TAG": "tag_example",
   "ICON_URL": "https://example.com/profile_pic.png",
-  "FEED_TITLE": "Posts of Example from Gelbooru"
+  "FEED_TITLE": "Posts of Example from Gelbooru",
+  "MIN_SCORE": 20
 }

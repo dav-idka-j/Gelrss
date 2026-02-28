@@ -63,6 +63,7 @@ async function loadArtistConfigs() {
           FEED_LINK:
             config.FEED_LINK ||
             `https://gelbooru.com/index.php?page=post&s=list&tags=${config.GELBOORU_TAG}+`,
+          MIN_SCORE: config.MIN_SCORE,
         });
 
         console.log(`✅ Config loaded: ${artistId}`);
@@ -99,6 +100,7 @@ async function createExampleConfigs() {
         FEED_TITLE: "Posts of Khyle from Gelbooru",
         FEED_LINK:
           "https://gelbooru.com/index.php?page=post&s=list&tags=khyle_(artist)+",
+        MIN_SCORE: 20,
       },
     },
     {
@@ -111,6 +113,7 @@ async function createExampleConfigs() {
         FEED_TITLE: "Posts of OptionalTypo from Gelbooru",
         FEED_LINK:
           "https://gelbooru.com/index.php?page=post&s=list&tags=optionaltypo+",
+        MIN_SCORE: 10,
       },
     },
   ];
@@ -151,6 +154,20 @@ async function fetchGelbooruPosts(tags, limit = GELBOORU_FETCH_LIMIT) {
   }
 }
 
+function getEffectiveTags(artistId, config) {
+  let tags = config.GELBOORU_TAG;
+  if (config.MIN_SCORE !== undefined) {
+    if (config.MIN_SCORE > 0) {
+      tags += ` score:>${config.MIN_SCORE - 1}`;
+    } else if (config.MIN_SCORE < 0) {
+      console.warn(
+        `⚠️ Config for ${artistId}: MIN_SCORE must be non-negative. Current value: ${config.MIN_SCORE}`,
+      );
+    }
+  }
+  return tags;
+}
+
 function toRFC822Date(dateString) {
   const date = new Date(dateString);
   return date.toUTCString();
@@ -185,7 +202,8 @@ async function updateArtistCache(artistId) {
   await cacheService.setFeedUpdatingStatus(artistId, true);
 
   try {
-    const apiResponse = await fetchGelbooruPosts(config.GELBOORU_TAG);
+    const tags = getEffectiveTags(artistId, config);
+    const apiResponse = await fetchGelbooruPosts(tags);
     const posts = apiResponse?.post ?? [];
 
     if (posts.length > 0) {
@@ -321,8 +339,10 @@ app.get("/test/:artistId", async (req, res) => {
         .json({ error: `Configuration not found for: ${artistId}` });
     }
 
+    const tags = getEffectiveTags(artistId, config);
+
     const [posts, cacheData] = await Promise.all([
-      fetchGelbooruPosts(config.GELBOORU_TAG, 5),
+      fetchGelbooruPosts(tags, 5),
       cacheService.getFeed(artistId),
     ]);
 
@@ -436,6 +456,7 @@ app.get("/", async (req, res) => {
         <tr>
             <td><strong>${config.ARTIST_NAME}</strong></td>
             <td><code>${config.GELBOORU_TAG}</code></td>
+            <td>${config.MIN_SCORE !== undefined ? `<code>${config.MIN_SCORE}</code>` : "None"}</td>
             <td>${cache && cache.posts && cache.posts.length > 0 ? "✅" : "❌"}</td>
             <td>${cache ? new Date(cache.lastUpdate).toLocaleString("en-US") : "Never"}</td>
             <td>${cache && cache.isUpdating ? "🔄" : "⏸️"}</td>
@@ -452,7 +473,7 @@ app.get("/", async (req, res) => {
   res.send(`
         <html>
         <head>
-            <title>Gelbooru RSS Generator v2.1</title>
+            <title>Gelbooru RSS Generator v2.2</title>
             <meta charset="utf-8">
             <style>
                 body { font-family: Arial, sans-serif; margin: 40px; }
@@ -465,7 +486,7 @@ app.get("/", async (req, res) => {
             </style>
         </head>
         <body>
-            <h1>🎨 Gelbooru RSS Generator v2.1</h1>
+            <h1>🎨 Gelbooru RSS Generator v2.2</h1>
 
             <h2>📊 Global Status</h2>
             <p><strong>Configured Feeds:</strong> ${feedConfigs.size}</p>
@@ -484,6 +505,7 @@ app.get("/", async (req, res) => {
                         <tr>
                             <th>Artist</th>
                             <th>Tag</th>
+                            <th>Min Score</th>
                             <th>Cache</th>
                             <th>Last Update</th>
                             <th>Status</th>
@@ -507,7 +529,8 @@ app.get("/", async (req, res) => {
   "ARTIST_NAME": "Artist Name",
   "GELBOORU_TAG": "artist_tag",
   "ICON_URL": "https://example.com/icon.png",
-  "FEED_TITLE": "Posts of Artist from Gelbooru"
+  "FEED_TITLE": "Posts of Artist from Gelbooru",
+  "MIN_SCORE": 20
 }</pre>
                 <p>3. Restart the server or access <code>/refresh/artist-name</code></p>
                 <p>4. Access the feed at <code>/rss/artist-name</code></p>
@@ -563,7 +586,7 @@ async function startServer() {
 
   app.listen(port, () => {
     console.log("=".repeat(60));
-    console.log("🎨 Gelbooru RSS Generator v2.1");
+    console.log("🎨 Gelbooru RSS Generator v2.2");
     console.log("=".repeat(60));
     console.log(`🌐 Server running at: ${FULL_BASE_URL}`);
     console.log(`📁 Available feeds: ${feedConfigs.size}`);
